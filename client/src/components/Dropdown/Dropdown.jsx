@@ -6,7 +6,6 @@ import {connect} from "react-redux";
 import {getPhotosData} from "../../store/actions/photos";
 import {ReactComponent as ArrowDown} from "./assets/arrowDown.svg";
 import {ReactComponent as ArrowUp} from "./assets/arrowUp.svg";
-import axios from "axios";
 import "../styles/Dropdown.css";
 
 class Dropdown extends Component {
@@ -39,9 +38,9 @@ class Dropdown extends Component {
 	}
 
 	onScroll(oList) {
-		if (this.isRequestNeeded(oList.currentTarget) && !this.state.loading) {
+		if (this.isRequestNeeded(oList.currentTarget) && !this.props.loading) {
 			console.log("request is needed");
-			const lastPhoto = this.state.photos[this.state.photos.length - 1];
+			const lastPhoto = this.props.photosData[this.props.photosData.length - 1];
 			const curPage = lastPhoto.albumId;
 			this.getPhotos(curPage + 1);
 			this.setState({page: curPage + 1});
@@ -54,11 +53,6 @@ class Dropdown extends Component {
 
 	getPhotos(page) {
 		this.state.getPhotosData(page);
-		this.setState({loading: true});
-		axios.get(`/api/photos?page=${page}`).then((res) => {
-			this.setState({photos: [...this.state.photos, ...res.data]});
-			this.setState({loading: false});
-		});
 	}
 
 	componentDidUpdate() {
@@ -181,7 +175,7 @@ class Dropdown extends Component {
 
 		const {wrapper, header, headerTitle, headerArrowUpIcon, headerArrowDownIcon, list, listSearchBar, scrollList} = styles;
 
-		const loadingTextCSS = {display: this.state.loading ? "block" : "none"};
+		const loadingTextCSS = {display: this.props.loading ? "block" : "none"};
 
 		return (
 			<div className={`dd-wrapper ${id}`} style={wrapper}>
