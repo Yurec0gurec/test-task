@@ -1,10 +1,8 @@
 import axios from "axios";
 import { GET_PHOTOS } from './constants';
-export const getPhotosData = (page) => (dispatch, getState) => {
-    const state = getState();
-    state.loading = true;
-    axios.get(`/api/photos?page=${state.page}`).then((res) => {
-        state.photos = [...state.photos, ...res.data];
-        state.loading = false;
-    }).then(photos => dispatch({ type: GET_PHOTOS, payload: photos }));
+import { START_GET_PHOTOS_REQUEST } from './constants';
+export const getPhotosData = (page) => async (dispatch, getState) => {
+    dispatch({ type: START_GET_PHOTOS_REQUEST, payload: {} });
+    const { data } = await axios.get(`/api/photos?page=${page}`)
+    dispatch({ type: GET_PHOTOS, payload: data });
 }

@@ -71,6 +71,7 @@
 	background-color: white;
 	border: 1px solid rgb(223, 223, 223);
 	height: 100px;
+	overflow: hidden;
 }
 
 .dd-wrapper .dd-list-item:hover {
@@ -79,6 +80,12 @@
 .dd-wrapper .dd-list-item img {
 	height: 45px;
 	width: 100px;
+}
+.dd-wrapper .dd-list-item div {
+	display: "flex";
+	flex-direction: "column";
+	margin-bottom: "20px";
+	align-items: "center";
 }
 
 .dd-wrapper .dd-list-search-bar {

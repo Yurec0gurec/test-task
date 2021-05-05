@@ -12,7 +12,7 @@ import "../styles/Dropdown.css";
 class Dropdown extends Component {
 	constructor(props) {
 		super(props);
-		const {title, list} = this.props;
+		const {title, list, getPhotosData} = this.props;
 
 		this.state = {
 			isListOpen: false,
@@ -23,7 +23,8 @@ class Dropdown extends Component {
 			photos: [],
 			loading: false,
 			page: 0,
-			prevY: 0
+			prevY: 0,
+			getPhotosData
 		};
 		this.searchField = React.createRef();
 	}
@@ -34,18 +35,15 @@ class Dropdown extends Component {
 		if (select) {
 			this.selectSingleItem(select);
 		}
-		// this.props.getPhotosData();
 		this.getPhotos(this.state.page);
 	}
 
 	onScroll(oList) {
-		if (this.isRequestNeeded(oList) && !this.state.loading) {
+		if (this.isRequestNeeded(oList.currentTarget) && !this.state.loading) {
 			console.log("request is needed");
 			const lastPhoto = this.state.photos[this.state.photos.length - 1];
 			const curPage = lastPhoto.albumId;
 			this.getPhotos(curPage + 1);
-			// this.props.getPhotos(curPage + 1);
-			// this.props.getPhotosData.call(this, curPage + 1);
 			this.setState({page: curPage + 1});
 		}
 	}
@@ -55,6 +53,7 @@ class Dropdown extends Component {
 	}
 
 	getPhotos(page) {
+		this.state.getPhotosData(page);
 		this.setState({loading: true});
 		axios.get(`/api/photos?page=${page}`).then((res) => {
 			this.setState({photos: [...this.state.photos, ...res.data]});
@@ -68,9 +67,6 @@ class Dropdown extends Component {
 		setTimeout(() => {
 			if (isListOpen) {
 				window.addEventListener("click", this.close);
-				document
-					.querySelector(".dd-scroll-list")
-					.addEventListener("scroll", this.onScroll.bind(this, document.querySelector(".dd-scroll-list")), false);
 			} else {
 				window.removeEventListener("click", this.close);
 			}
@@ -153,21 +149,20 @@ class Dropdown extends Component {
 	};
 
 	listItems = () => {
-		const {id, searchable, styles} = this.props;
+		const {id, searchable, styles, photosData} = this.props;
 		const {listItem, listItemNoResult} = styles;
-		const {keyword, photos} = this.state;
-		let tempList = [...photos];
+		const {keyword} = this.state;
+		let tempList = [...photosData];
 
 		if (keyword.length) {
-			tempList = photos.filter((item) => item.title.toLowerCase().includes(keyword.toLowerCase()));
+			tempList = photosData.filter((item) => item.title.toLowerCase().includes(keyword.toLowerCase()));
 		}
-
 		if (tempList.length) {
 			return tempList.map((user, index) => (
 				<button type="button" className={`dd-list-item ${id}`} style={listItem} key={user.id} onClick={() => this.selectItem(user)}>
-					<div style={{display: "flex", flexDirection: "column", marginBottom: "20px", alignItems: "center"}}>
-						<p>{user.title}</p>
+					<div>
 						<img src={user.url} height="80px" alt="empty" width="100px" />
+						<p>{user.title}</p>
 					</div>
 				</button>
 			));
@@ -212,7 +207,7 @@ class Dropdown extends Component {
 								onChange={(e) => this.filterList(e)}
 							/>
 						)}
-						<div className={`dd-scroll-list ${id}`} style={scrollList}>
+						<div onScroll={this.onScroll.bind(this)} className={`dd-scroll-list ${id}`} style={scrollList}>
 							{this.listItems()}
 							<button type="button" className={`dd-list-item ${id}`} style={listItem}>
 								<span style={loadingTextCSS}>Loading...</span>
@@ -257,14 +252,16 @@ Dropdown.propTypes = {
 	arrowUpIcon: PropTypes.elementType,
 	arrowDownIcon: PropTypes.elementType
 };
-const mapStateToProps = (state) => ({
-	photosData: state.photosData,
-	loading: state.loading,
-	page: state.page
-});
+const mapStateToProps = (state) => {
+	return {
+		photosData: state.photosStore.photos,
+		loading: state.photosStore.loading,
+		page: state.page
+	};
+};
 
 const dispatchToProps = (dispatch) => ({
-	getPhotosData: () => dispatch(getPhotosData())
+	getPhotosData: (page) => dispatch(getPhotosData(page))
 });
 
 export default connect(mapStateToProps, dispatchToProps)(Dropdown);
